@@ -46,7 +46,7 @@ export default function LoginPage() {
       // Traducir errores comunes de Supabase al español
       let errorTexto = error.message;
       if (errorTexto === "Invalid login credentials") {
-        errorTexto = "Usuario no encontrado o contraseña incorrecta.";
+        errorTexto = "Usuario no encontrado.";
       } else if (errorTexto === "Email not confirmed") {
         errorTexto = "Debes confirmar tu correo electrónico antes de iniciar sesión.";
       } else if (errorTexto === "User already registered") {
