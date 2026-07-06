@@ -1,0 +1,257 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+import { createCalendarEvent } from "@/app/actions/calendar";
+
+const PRICES = {
+  "1200": 80000,
+  "2000": 120000,
+  "2500": 160000,
+  "3250": 250000,
+  "5000": 400000,
+};
+
+export default function QuotationForm() {
+  const [formData, setFormData] = useState({
+    nombre: "",
+    empresa: "",
+    email: "",
+    telefono: "",
+    fecha: "",
+    capacidad: "",
+    direccion: "",
+    comuna: "Chillán",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const calculatedPrice = formData.capacidad ? PRICES[formData.capacidad as keyof typeof PRICES] : 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMsg("");
+    setSuccess(false);
+
+    try {
+      // Simulación de Pago (2 segundos)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Guardar en Supabase
+      const { error } = await supabase.from("appointments").insert([
+        {
+          nombre: formData.nombre,
+          empresa: formData.empresa,
+          email: formData.email,
+          telefono: formData.telefono,
+          fecha: formData.fecha,
+          capacidad: formData.capacidad,
+          direccion: formData.direccion,
+          comuna: formData.comuna,
+          precio: calculatedPrice,
+          status: "paid",
+        },
+      ]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Agendar en Google Calendar (ahora envía la notificación al correo del cliente)
+      const calendarRes = await createCalendarEvent({
+        nombre: formData.nombre,
+        empresa: formData.empresa,
+        email: formData.email,
+        telefono: formData.telefono,
+        fecha: formData.fecha,
+        capacidad: formData.capacidad,
+        direccion: formData.direccion,
+        comuna: formData.comuna,
+      });
+
+      if (!calendarRes.success) {
+        console.warn("Reserva guardada, pero falló Calendar:", calendarRes.error);
+      }
+
+      setSuccess(true);
+      // Reset form
+      setFormData({
+        nombre: "",
+        empresa: "",
+        email: "",
+        telefono: "",
+        fecha: "",
+        capacidad: "",
+        direccion: "",
+        comuna: "Chillán",
+      });
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("Ocurrió un error al agendar. Inténtalo de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl mx-auto border-t-4 border-cyan relative">
+      <h2 className="text-3xl font-extrabold text-navy mb-6 text-center uppercase tracking-tight">
+        Agendar Servicio
+      </h2>
+      
+      {success && (
+        <div className="mb-6 p-4 bg-green/10 border border-green text-green font-bold rounded">
+          ¡Pago simulado con éxito! Tu servicio ha sido agendado y se envió la confirmación al correo del cliente.
+        </div>
+      )}
+
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 font-bold rounded">
+          {errorMsg}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Nombre y Apellido</label>
+            <input
+              type="text"
+              name="nombre"
+              required
+              value={formData.nombre}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Empresa (Opcional)</label>
+            <input
+              type="text"
+              name="empresa"
+              value={formData.empresa}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Correo Electrónico</label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Teléfono</label>
+            <input
+              type="tel"
+              name="telefono"
+              required
+              value={formData.telefono}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Fecha Solicitada</label>
+            <input
+              type="date"
+              name="fecha"
+              required
+              value={formData.fecha}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Capacidad de Fosa</label>
+            <select
+              name="capacidad"
+              value={formData.capacidad}
+              onChange={handleChange}
+              required
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            >
+              <option value="" disabled>Seleccione una capacidad...</option>
+              <option value="1200">1.200 LTS</option>
+              <option value="2000">2.000 LTS</option>
+              <option value="2500">2.500 LTS</option>
+              <option value="3250">3.250 LTS</option>
+              <option value="5000">5.000 LTS</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Dirección</label>
+            <input
+              type="text"
+              name="direccion"
+              required
+              value={formData.direccion}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Comuna</label>
+            <select
+              name="comuna"
+              value={formData.comuna}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            >
+              <option value="Chillán">Chillán</option>
+              <option value="Chillán Viejo">Chillán Viejo</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-8 p-6 bg-navy text-white rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden">
+          {isSubmitting && (
+            <div className="absolute inset-0 bg-navy/80 flex items-center justify-center z-10 backdrop-blur-sm">
+              <span className="font-mono text-cyan animate-pulse">PROCESANDO PAGO...</span>
+            </div>
+          )}
+          
+          <div>
+            <p className="text-sm text-cyan font-mono mb-1 uppercase tracking-widest">Total a Pagar</p>
+            <p className="text-4xl font-extrabold">${calculatedPrice.toLocaleString("es-CL")}</p>
+          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting || !formData.capacidad}
+            className="w-full sm:w-auto px-8 py-4 bg-green text-white font-black uppercase tracking-widest hover:bg-white hover:text-navy transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Pagar y Agendar
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
