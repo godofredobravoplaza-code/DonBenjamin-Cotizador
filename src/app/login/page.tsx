@@ -12,20 +12,62 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [warningMsg, setWarningMsg] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
+    setWarningMsg("");
 
     try {
       if (isLogin) {
+        // 1. Verificamos el bloqueo antes de intentar
+        const checkRes = await fetch("/api/auth-lock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "check", email }),
+        }).then(res => res.json());
+
+        if (checkRes.locked) {
+          throw new Error("LOCKED");
+        }
+
+        // 2. Intento de login real
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+
+        if (error) {
+          // Si falla, reportamos el fallo para subir el contador
+          const failRes = await fetch("/api/auth-lock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "fail", email }),
+          }).then(res => res.json());
+          
+          if (failRes.locked) {
+            throw new Error("LOCKED");
+          } else if (failRes.attempts === 3) {
+            setWarningMsg("Atención: Te quedan 2 intentos antes de bloquear la cuenta por seguridad.");
+            throw new Error("Credenciales incorrectas.");
+          } else if (failRes.attempts === 4) {
+            setWarningMsg("ÚLTIMO INTENTO: Si fallas nuevamente, tu cuenta será bloqueada.");
+            throw new Error("Credenciales incorrectas.");
+          } else {
+            throw new Error("Credenciales incorrectas.");
+          }
+        }
+        
+        // Si fue exitoso, limpiamos los intentos
+        fetch("/api/auth-lock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "success", email }),
+        });
+
         router.push("/");
       } else {
         if (password !== confirmPassword) {
@@ -37,25 +79,25 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        // Dependiendo de la configuración de Supabase, podría requerir confirmación por email
-        // Pero si el Auto-Confirm está encendido en Supabase, hace login directo.
         setErrorMsg("Registro exitoso. Redirigiendo...");
         setTimeout(() => router.push("/"), 2000);
       }
     } catch (error: any) {
-      // Traducir errores comunes de Supabase al español
-      let errorTexto = error.message;
-      if (errorTexto === "Invalid login credentials") {
-        errorTexto = "Usuario no encontrado.";
-      } else if (errorTexto === "Email not confirmed") {
-        errorTexto = "Debes confirmar tu correo electrónico antes de iniciar sesión.";
-      } else if (errorTexto === "User already registered") {
-        errorTexto = "Este correo ya está registrado en el sistema.";
-      } else if (errorTexto.includes("Password should be at least")) {
-        errorTexto = "La contraseña debe tener al menos 6 caracteres.";
+      if (error.message === "LOCKED") {
+        setErrorMsg("Cuenta bloqueada por 15 minutos debido a múltiples intentos fallidos.");
+      } else {
+        let errorTexto = error.message;
+        if (errorTexto === "Invalid login credentials") {
+          errorTexto = "Credenciales incorrectas.";
+        } else if (errorTexto === "Email not confirmed") {
+          errorTexto = "Debes confirmar tu correo electrónico antes de iniciar sesión.";
+        } else if (errorTexto === "User already registered") {
+          errorTexto = "Este correo ya está registrado en el sistema.";
+        } else if (errorTexto.includes("Password should be at least")) {
+          errorTexto = "La contraseña debe tener al menos 6 caracteres.";
+        }
+        setErrorMsg(errorTexto);
       }
-
-      setErrorMsg(errorTexto);
     } finally {
       setLoading(false);
     }
@@ -74,6 +116,7 @@ export default function LoginPage() {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setErrorMsg("");
+                setWarningMsg("");
                 setConfirmPassword(""); // Limpiar al cambiar
               }}
               className="font-medium text-cyan hover:text-navy transition-colors"
@@ -86,6 +129,12 @@ export default function LoginPage() {
         {errorMsg && (
           <div className={`p-4 rounded text-sm font-bold ${errorMsg.includes("exitoso") ? "bg-green/10 text-green" : "bg-red-100 text-red-700"}`}>
             {errorMsg}
+          </div>
+        )}
+
+        {warningMsg && (
+          <div className={`p-4 rounded text-sm font-bold ${warningMsg.includes("ÚLTIMO") ? "bg-red-600 text-white animate-pulse" : "bg-yellow-100 text-yellow-800"}`}>
+            {warningMsg}
           </div>
         )}
 
