@@ -104,11 +104,19 @@ export default function DashboardPage() {
                       ${appt.precio.toLocaleString("es-CL")}
                     </td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-widest ${
-                        appt.status === "paid" ? "bg-green/10 text-green" : "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {appt.status === "paid" ? "Pagado" : appt.status}
-                      </span>
+                      {appt.status === "confirmed" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-widest bg-green/10 text-green">
+                          ✅ Confirmado
+                        </span>
+                      ) : appt.status === "pending" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-widest bg-yellow-100 text-yellow-800">
+                          ⏳ Pendiente
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-widest bg-slate-100 text-slate-800">
+                          {appt.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

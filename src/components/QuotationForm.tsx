@@ -118,7 +118,7 @@ export default function QuotationForm() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Guardar en Supabase
-      const { error } = await supabase.from("appointments").insert([
+      const { data: appointmentData, error } = await supabase.from("appointments").insert([
         {
           user_id: user?.id,
           nombre: formData.nombre,
@@ -131,9 +131,9 @@ export default function QuotationForm() {
           direccion: formData.direccion,
           comuna: formData.comuna,
           precio: calculatedPrice,
-          status: "paid",
+          status: "pending", // Empezamos en pendiente
         },
-      ]);
+      ]).select("id").single();
 
       if (error) {
         throw error;
@@ -158,6 +158,8 @@ export default function QuotationForm() {
 
       // Enviar correo de confirmación real al cliente usando Gmail
       const emailRes = await sendConfirmationEmail({
+        id: appointmentData?.id,
+        baseUrl: window.location.origin,
         nombre: formData.nombre,
         email: formData.email,
         fecha: formData.fecha,
