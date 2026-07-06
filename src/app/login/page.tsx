@@ -121,7 +121,17 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div>
+          {isLogin && (
+            <div className="flex items-center justify-end mt-2">
+              <div className="text-sm">
+                <Link href="/forgot-password" className="font-medium text-cyan hover:text-navy transition-colors">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <div className={!isLogin ? "mt-6" : "mt-2"}>
             <button
               type="submit"
               disabled={loading}
