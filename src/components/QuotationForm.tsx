@@ -13,6 +13,29 @@ const PRICES = {
   "5000": 400000,
 };
 
+function isHolidayOrSunday(dateString: string) {
+  const date = new Date(dateString + "T12:00:00-04:00");
+  if (date.getDay() === 0) return true; // Domingo
+
+  // Feriados fijos en Chile (Mes-Día)
+  const fixedHolidays = [
+    "01-01", "05-01", "05-21", "07-16", "08-15", 
+    "09-18", "09-19", "10-31", "11-01", "12-08", "12-25"
+  ];
+  const md = dateString.substring(5);
+  if (fixedHolidays.includes(md)) return true;
+
+  // Feriados móviles / variables comunes (aprox 2026/2027)
+  const mobileHolidays = [
+    "2026-04-03", "2026-04-04", // Semana Santa
+    "2026-06-22", // Pueblos originarios / San Pedro
+    "2026-10-12", // Encuentro dos mundos
+  ];
+  if (mobileHolidays.includes(dateString)) return true;
+
+  return false;
+}
+
 export default function QuotationForm() {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -30,13 +53,24 @@ export default function QuotationForm() {
   const [errorMsg, setErrorMsg] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [isHoliday, setIsHoliday] = useState(false);
 
   useEffect(() => {
     async function fetchSlots() {
       if (!formData.fecha) {
         setAvailableSlots([]);
+        setIsHoliday(false);
         return;
       }
+
+      if (isHolidayOrSunday(formData.fecha)) {
+        setIsHoliday(true);
+        setAvailableSlots([]);
+        setFormData((prev) => ({ ...prev, hora: "" }));
+        return;
+      }
+      
+      setIsHoliday(false);
       setIsLoadingSlots(true);
       const res = await getAvailableSlots(formData.fecha);
       if (res.success) {
@@ -236,12 +270,14 @@ export default function QuotationForm() {
                 required
                 value={formData.hora}
                 onChange={handleChange}
-                disabled={isSubmitting || isLoadingSlots || availableSlots.length === 0}
+                disabled={isSubmitting || isLoadingSlots || availableSlots.length === 0 || isHoliday}
                 className="w-1/2 p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
               >
                 <option value="" disabled>
                   {isLoadingSlots
                     ? "Buscando horas..."
+                    : isHoliday
+                    ? "Cerrado (Domingo/Feriado)"
                     : availableSlots.length === 0 && formData.fecha
                     ? "Día sin disponibilidad"
                     : "Hora..."}
