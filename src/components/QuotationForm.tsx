@@ -20,6 +20,7 @@ export default function QuotationForm() {
     email: "",
     telefono: "",
     fecha: "",
+    hora: "",
     capacidad: "",
     direccion: "",
     comuna: "Chillán",
@@ -52,6 +53,7 @@ export default function QuotationForm() {
           email: formData.email,
           telefono: formData.telefono,
           fecha: formData.fecha,
+          hora: formData.hora,
           capacidad: formData.capacidad,
           direccion: formData.direccion,
           comuna: formData.comuna,
@@ -71,6 +73,7 @@ export default function QuotationForm() {
         email: formData.email,
         telefono: formData.telefono,
         fecha: formData.fecha,
+        hora: formData.hora,
         capacidad: formData.capacidad,
         direccion: formData.direccion,
         comuna: formData.comuna,
@@ -85,6 +88,7 @@ export default function QuotationForm() {
         nombre: formData.nombre,
         email: formData.email,
         fecha: formData.fecha,
+        hora: formData.hora,
         capacidad: formData.capacidad,
         direccion: formData.direccion,
         comuna: formData.comuna,
@@ -103,6 +107,7 @@ export default function QuotationForm() {
         email: "",
         telefono: "",
         fecha: "",
+        hora: "",
         capacidad: "",
         direccion: "",
         comuna: "Chillán",
@@ -189,16 +194,27 @@ export default function QuotationForm() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-bold text-navy mb-2">Fecha Solicitada</label>
-            <input
-              type="date"
-              name="fecha"
-              required
-              value={formData.fecha}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
-            />
+            <label className="block text-sm font-bold text-navy mb-2">Fecha y Hora Solicitada</label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                name="fecha"
+                required
+                value={formData.fecha}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="w-1/2 p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+              />
+              <input
+                type="time"
+                name="hora"
+                required
+                value={formData.hora}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="w-1/2 p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-navy mb-2">Capacidad de Fosa</label>
@@ -261,7 +277,7 @@ export default function QuotationForm() {
           </div>
           <button
             type="submit"
-            disabled={isSubmitting || !formData.capacidad}
+            disabled={isSubmitting || !formData.capacidad || !formData.hora}
             className="w-full sm:w-auto px-8 py-4 bg-green text-white font-black uppercase tracking-widest hover:bg-white hover:text-navy transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Pagar y Agendar

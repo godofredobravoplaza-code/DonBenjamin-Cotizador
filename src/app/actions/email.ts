@@ -6,6 +6,7 @@ export async function sendConfirmationEmail(data: {
   nombre: string;
   email: string;
   fecha: string;
+  hora: string;
   capacidad: string;
   direccion: string;
   comuna: string;
@@ -36,7 +37,7 @@ export async function sendConfirmationEmail(data: {
     const mailOptions = {
       from: `"Don Benjamín" <${user}>`,
       to: data.email,
-      subject: `Confirmación de Reserva Limpiafosas - ${data.fecha}`,
+      subject: `Confirmación de Reserva Limpiafosas - ${data.fecha} ${data.hora}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
           <div style="background-color: #0B2447; padding: 20px; text-align: center;">
@@ -53,7 +54,7 @@ export async function sendConfirmationEmail(data: {
             <div style="background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #61C0BF;">
               <h3 style="margin-top: 0; color: #0B2447;">Detalles de la Reserva</h3>
               <ul style="list-style: none; padding: 0; margin: 0; color: #333333;">
-                <li style="margin-bottom: 10px;"><strong>📅 Fecha:</strong> ${data.fecha}</li>
+                <li style="margin-bottom: 10px;"><strong>📅 Fecha y Hora:</strong> ${data.fecha} a las ${data.hora} hrs.</li>
                 <li style="margin-bottom: 10px;"><strong>💧 Capacidad:</strong> ${data.capacidad} LTS</li>
                 <li style="margin-bottom: 10px;"><strong>📍 Dirección:</strong> ${data.direccion}, ${data.comuna}</li>
                 <li style="margin-bottom: 10px;"><strong>💰 Total a Pagar:</strong> ${formattedPrice}</li>

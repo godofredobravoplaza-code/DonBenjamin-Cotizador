@@ -8,6 +8,7 @@ export async function createCalendarEvent(data: {
   email: string;
   telefono: string;
   fecha: string;
+  hora: string;
   capacidad: string;
   direccion: string;
   comuna: string;
@@ -44,11 +45,11 @@ export async function createCalendarEvent(data: {
         - Dirección: ${data.direccion}, ${data.comuna}
       `,
       start: {
-        date: data.fecha,
+        dateTime: \`\${data.fecha}T\${data.hora}:00\`,
         timeZone: "America/Santiago",
       },
       end: {
-        date: data.fecha,
+        dateTime: \`\${data.fecha}T\${String((parseInt(data.hora.split(":")[0]) + 2) % 24).padStart(2, "0")}:\${data.hora.split(":")[1]}:00\`,
         timeZone: "America/Santiago",
       },
     };
