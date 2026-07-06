@@ -39,11 +39,23 @@ export default function LoginPage() {
         if (error) throw error;
         // Dependiendo de la configuración de Supabase, podría requerir confirmación por email
         // Pero si el Auto-Confirm está encendido en Supabase, hace login directo.
-        setErrorMsg("Registro exitoso. (Si configuraste confirmación de email, por favor revisa tu bandeja). Redirigiendo...");
+        setErrorMsg("Registro exitoso. Redirigiendo...");
         setTimeout(() => router.push("/"), 2000);
       }
     } catch (error: any) {
-      setErrorMsg(error.message);
+      // Traducir errores comunes de Supabase al español
+      let errorTexto = error.message;
+      if (errorTexto === "Invalid login credentials") {
+        errorTexto = "Usuario no encontrado o contraseña incorrecta.";
+      } else if (errorTexto === "Email not confirmed") {
+        errorTexto = "Debes confirmar tu correo electrónico antes de iniciar sesión.";
+      } else if (errorTexto === "User already registered") {
+        errorTexto = "Este correo ya está registrado en el sistema.";
+      } else if (errorTexto.includes("Password should be at least")) {
+        errorTexto = "La contraseña debe tener al menos 6 caracteres.";
+      }
+
+      setErrorMsg(errorTexto);
     } finally {
       setLoading(false);
     }
