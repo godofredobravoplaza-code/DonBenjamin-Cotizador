@@ -97,7 +97,7 @@ export default function QuotationForm() {
       if (res.success) {
         setAvailableSlots(res.slots);
         // Si la hora seleccionada ya no está disponible, la limpiamos
-        if (formData.hora && !res.slots.includes(formData.hora)) {
+        if (formData.hora && !(res.slots as string[]).includes(formData.hora)) {
           setFormData((prev) => ({ ...prev, hora: "" }));
         }
       } else {
