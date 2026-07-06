@@ -225,6 +225,7 @@ export default function QuotationForm() {
                 type="date"
                 name="fecha"
                 required
+                min={new Date().toISOString().split("T")[0]}
                 value={formData.fecha}
                 onChange={handleChange}
                 disabled={isSubmitting}
