@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { createCalendarEvent } from "@/app/actions/calendar";
+import { sendConfirmationEmail } from "@/app/actions/email";
 
 const PRICES = {
   "1200": 80000,
@@ -63,7 +64,7 @@ export default function QuotationForm() {
         throw error;
       }
 
-      // Agendar en Google Calendar (ahora envía la notificación al correo del cliente)
+      // Agendar en Google Calendar (interno)
       const calendarRes = await createCalendarEvent({
         nombre: formData.nombre,
         empresa: formData.empresa,
@@ -77,6 +78,21 @@ export default function QuotationForm() {
 
       if (!calendarRes.success) {
         console.warn("Reserva guardada, pero falló Calendar:", calendarRes.error);
+      }
+
+      // Enviar correo de confirmación real al cliente usando Gmail
+      const emailRes = await sendConfirmationEmail({
+        nombre: formData.nombre,
+        email: formData.email,
+        fecha: formData.fecha,
+        capacidad: formData.capacidad,
+        direccion: formData.direccion,
+        comuna: formData.comuna,
+        precio: calculatedPrice,
+      });
+
+      if (!emailRes.success) {
+        console.warn("Falló envío de correo:", emailRes.error);
       }
 
       setSuccess(true);

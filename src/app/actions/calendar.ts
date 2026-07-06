@@ -51,13 +51,11 @@ export async function createCalendarEvent(data: {
         date: data.fecha,
         timeZone: "America/Santiago",
       },
-      attendees: data.email ? [{ email: data.email }] : [],
     };
 
     const response = await calendar.events.insert({
       calendarId: calendarId,
       requestBody: event,
-      sendUpdates: "all", // Envía correo a los asistentes automáticamente
     });
 
     return { success: true, eventUrl: response.data.htmlLink };
