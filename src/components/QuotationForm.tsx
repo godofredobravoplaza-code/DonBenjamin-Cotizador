@@ -152,10 +152,6 @@ export default function QuotationForm() {
         comuna: formData.comuna,
       });
 
-      if (!calendarRes.success) {
-        console.warn("Reserva guardada, pero falló Calendar:", calendarRes.error);
-      }
-
       // Enviar correo de confirmación real al cliente usando Gmail
       const emailRes = await sendConfirmationEmail({
         id: appointmentData?.id,

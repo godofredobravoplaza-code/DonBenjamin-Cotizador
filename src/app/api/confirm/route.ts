@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createCalendarEvent } from "@/app/actions/calendar";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -27,6 +28,26 @@ export async function GET(request: Request) {
     if (error) {
       console.error("Error al confirmar:", error);
       return new NextResponse("Error interno al confirmar la cita en Supabase", { status: 500 });
+    }
+
+    // Si se confirma exitosamente en Supabase, ahora sí agendamos en Google Calendar
+    try {
+      const calRes = await createCalendarEvent({
+        nombre: data.nombre,
+        empresa: data.empresa || "",
+        email: data.email,
+        telefono: data.telefono,
+        fecha: data.fecha,
+        hora: data.hora,
+        capacidad: data.capacidad,
+        direccion: data.direccion,
+        comuna: data.comuna,
+      });
+      if (!calRes.success) {
+        console.error("Error al agendar en Google Calendar desde /api/confirm:", calRes.error);
+      }
+    } catch (calError) {
+      console.error("Excepción al llamar a createCalendarEvent:", calError);
     }
 
     // HTML de confirmación exitosa
