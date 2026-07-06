@@ -8,6 +8,7 @@ import Link from "next/link";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -27,6 +28,10 @@ export default function LoginPage() {
         if (error) throw error;
         router.push("/");
       } else {
+        if (password !== confirmPassword) {
+          throw new Error("Las contraseñas no coinciden");
+        }
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -57,6 +62,7 @@ export default function LoginPage() {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setErrorMsg("");
+                setConfirmPassword(""); // Limpiar al cambiar
               }}
               className="font-medium text-cyan hover:text-navy transition-colors"
             >
@@ -90,7 +96,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-cyan focus:border-cyan focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 ${isLogin ? 'rounded-b-md' : ''} focus:outline-none focus:ring-cyan focus:border-cyan focus:z-10 sm:text-sm`}
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -98,6 +104,21 @@ export default function LoginPage() {
                 minLength={6}
               />
             </div>
+            {!isLogin && (
+              <div>
+                <label className="sr-only">Confirmar Contraseña</label>
+                <input
+                  type="password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-cyan focus:border-cyan focus:z-10 sm:text-sm"
+                  placeholder="Repite tu contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
+            )}
           </div>
 
           <div>
