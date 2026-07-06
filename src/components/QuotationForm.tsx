@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { createCalendarEvent } from "@/app/actions/calendar";
+import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 
 const PRICES = {
@@ -28,6 +28,31 @@ export default function QuotationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    async function fetchSlots() {
+      if (!formData.fecha) {
+        setAvailableSlots([]);
+        return;
+      }
+      setIsLoadingSlots(true);
+      const res = await getAvailableSlots(formData.fecha);
+      if (res.success) {
+        setAvailableSlots(res.slots);
+        // Si la hora seleccionada ya no está disponible, la limpiamos
+        if (formData.hora && !res.slots.includes(formData.hora)) {
+          setFormData((prev) => ({ ...prev, hora: "" }));
+        }
+      } else {
+        setAvailableSlots([]);
+        setFormData((prev) => ({ ...prev, hora: "" }));
+      }
+      setIsLoadingSlots(false);
+    }
+    fetchSlots();
+  }, [formData.fecha]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -205,15 +230,27 @@ export default function QuotationForm() {
                 disabled={isSubmitting}
                 className="w-1/2 p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
               />
-              <input
-                type="time"
+              <select
                 name="hora"
                 required
                 value={formData.hora}
                 onChange={handleChange}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoadingSlots || availableSlots.length === 0}
                 className="w-1/2 p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
-              />
+              >
+                <option value="" disabled>
+                  {isLoadingSlots
+                    ? "Buscando horas..."
+                    : availableSlots.length === 0 && formData.fecha
+                    ? "Día sin disponibilidad"
+                    : "Hora..."}
+                </option>
+                {availableSlots.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot} hrs
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div>
