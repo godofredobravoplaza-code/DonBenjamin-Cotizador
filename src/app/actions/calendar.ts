@@ -45,11 +45,11 @@ export async function createCalendarEvent(data: {
         - Dirección: ${data.direccion}, ${data.comuna}
       `,
       start: {
-        dateTime: \`\${data.fecha}T\${data.hora}:00\`,
+        dateTime: `${data.fecha}T${data.hora}:00`,
         timeZone: "America/Santiago",
       },
       end: {
-        dateTime: \`\${data.fecha}T\${String((parseInt(data.hora.split(":")[0]) + 2) % 24).padStart(2, "0")}:\${data.hora.split(":")[1]}:00\`,
+        dateTime: `${data.fecha}T${String((parseInt(data.hora.split(":")[0]) + 2) % 24).padStart(2, "0")}:${data.hora.split(":")[1]}:00`,
         timeZone: "America/Santiago",
       },
     };
