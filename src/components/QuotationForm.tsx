@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
@@ -50,23 +51,30 @@ export default function QuotationForm() {
     comuna: "Chillán",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isHoliday, setIsHoliday] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user?.email) {
-        setFormData((prev) => ({ ...prev, email: session.user.email! }));
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login");
+      } else {
+        setUser(session.user);
+        if (session.user.email) {
+          setFormData((prev) => ({ ...prev, email: session.user.email! }));
+        }
+        setSessionLoading(false);
       }
-      setAuthChecked(true);
-    });
-  }, []);
+    }
+    checkSession();
+  }, [router]);
 
   useEffect(() => {
     async function fetchSlots() {
@@ -191,17 +199,13 @@ export default function QuotationForm() {
     }
   };
 
-  if (!authChecked) {
-    return <div className="text-center p-10 font-mono text-navy animate-pulse">Cargando...</div>;
-  }
-
   if (!user) {
     return (
       <div className="bg-white p-10 rounded-lg shadow-xl max-w-xl mx-auto border-t-4 border-cyan text-center">
         <h2 className="text-3xl font-extrabold text-navy mb-4 uppercase tracking-tight">Acceso Requerido</h2>
         <p className="text-slate-600 mb-8">
-          Para poder cotizar y agendar nuestros servicios, necesitas crear una cuenta gratuita. 
-          Esto nos permite mantener un historial de tus servicios y contactarte de manera más segura.
+          Para poder cotizar y agendar nuestros servicios, necesitas iniciar sesión en tu cuenta. 
+          Esto nos permite mantener un historial de tus servicios y contactarte de manera segura.
         </p>
         <Link 
           href="/login" 

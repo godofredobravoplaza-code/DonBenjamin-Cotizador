@@ -95,6 +95,8 @@ export default function LoginPage() {
           errorTexto = "Este correo ya está registrado en el sistema.";
         } else if (errorTexto.includes("Password should be at least")) {
           errorTexto = "La contraseña debe tener al menos 6 caracteres.";
+        } else if (errorTexto.toLowerCase().includes("rate limit")) {
+          errorTexto = "Límite de intentos excedido por seguridad. Intenta nuevamente más tarde.";
         }
         setErrorMsg(errorTexto);
       }
