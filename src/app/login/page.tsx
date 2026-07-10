@@ -207,11 +207,21 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        <div className="text-center mt-4">
-          <Link href="/" className="text-sm text-gray-500 hover:text-navy">
-            &larr; Volver al inicio
-          </Link>
-        </div>
+        {!isLogin && (
+          <div className="text-center mt-4">
+            <button 
+              type="button"
+              onClick={() => {
+                setIsLogin(true);
+                setErrorMsg("");
+                setWarningMsg("");
+              }} 
+              className="text-sm text-gray-500 hover:text-navy"
+            >
+              &larr; Volver a Iniciar Sesión
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
