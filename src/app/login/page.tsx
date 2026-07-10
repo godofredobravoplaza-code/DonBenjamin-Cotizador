@@ -142,7 +142,7 @@ export default function LoginPage() {
         </div>
         
         {errorMsg && (
-          <div className={`p-4 rounded text-sm font-bold ${errorMsg.includes("exitoso") ? "bg-green/10 text-green" : "bg-red-100 text-red-700"}`}>
+          <div className={`p-4 rounded text-sm font-bold ${(errorMsg.includes("exitoso") || errorMsg.includes("casi listo")) ? "bg-green/10 text-green" : "bg-red-100 text-red-700"}`}>
             {errorMsg}
           </div>
         )}
