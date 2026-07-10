@@ -77,10 +77,20 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/confirm-email`,
+          },
         });
         if (error) throw error;
-        setErrorMsg("Registro exitoso. Redirigiendo...");
-        setTimeout(() => router.push("/"), 2000);
+        
+        // Mostrar mensaje de confirmación sin redirigir
+        setErrorMsg("¡Registro casi listo! Hemos enviado un enlace de confirmación a tu correo. Por favor revísalo (y tu carpeta de spam) para activar tu cuenta antes de iniciar sesión.");
+        
+        // Opcionalmente podemos limpiar los campos o cambiar a modo login
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setIsLogin(true);
       }
     } catch (error: any) {
       if (error.message === "LOCKED") {
