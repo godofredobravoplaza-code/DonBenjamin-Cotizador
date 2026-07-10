@@ -62,13 +62,18 @@ export default function QuotationForm() {
 
   useEffect(() => {
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Usamos getUser() en lugar de getSession() para validar con el servidor
+      // que el usuario realmente sigue existiendo y no fue borrado.
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        // Si hay error (ej. usuario borrado) o no hay usuario, forzamos cerrar sesión localmente
+        await supabase.auth.signOut();
         router.push("/login");
       } else {
-        setUser(session.user);
-        if (session.user.email) {
-          setFormData((prev) => ({ ...prev, email: session.user.email! }));
+        setUser(user);
+        if (user.email) {
+          setFormData((prev) => ({ ...prev, email: user.email! }));
         }
         setSessionLoading(false);
       }
