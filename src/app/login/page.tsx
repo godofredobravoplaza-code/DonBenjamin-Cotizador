@@ -112,6 +112,9 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-navy">
             {isLogin ? "Inicia Sesión" : "Crea tu Cuenta"}
           </h2>
+          <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded text-center text-sm text-slate-700 leading-relaxed">
+            Si ya estás registrado, inicia sesión con tu correo y contraseña. De lo contrario, pincha el enlace de registro para crear tu cuenta.
+          </div>
           <p className="mt-2 text-center text-sm text-gray-600">
             {isLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
             <button

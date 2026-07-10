@@ -204,20 +204,10 @@ export default function QuotationForm() {
     }
   };
 
-  if (!user) {
+  if (sessionLoading || !user) {
     return (
-      <div className="bg-white p-10 rounded-lg shadow-xl max-w-xl mx-auto border-t-4 border-cyan text-center">
-        <h2 className="text-3xl font-extrabold text-navy mb-4 uppercase tracking-tight">Acceso Requerido</h2>
-        <p className="text-slate-600 mb-8">
-          Para poder cotizar y agendar nuestros servicios, necesitas iniciar sesión en tu cuenta. 
-          Esto nos permite mantener un historial de tus servicios y contactarte de manera segura.
-        </p>
-        <Link 
-          href="/login" 
-          className="inline-block px-8 py-4 bg-navy text-white font-black uppercase tracking-widest hover:bg-cyan transition-colors rounded shadow-lg"
-        >
-          Iniciar Sesión / Registrarse
-        </Link>
+      <div className="flex justify-center items-center p-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-cyan"></div>
       </div>
     );
   }
