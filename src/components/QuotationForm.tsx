@@ -353,7 +353,6 @@ export default function QuotationForm() {
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-navy mb-2">Dirección (Busca en el mapa)</label>
             <Autocomplete
-              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
               onPlaceSelected={(place) => {
                 if (place?.formatted_address) {
                   setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
