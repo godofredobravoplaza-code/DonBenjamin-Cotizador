@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import Script from "next/script";
 
 const PRICES = {
   "1200": 80000,
@@ -60,50 +61,38 @@ export default function QuotationForm() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isHoliday, setIsHoliday] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const router = useRouter();
   const addressInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    let autocomplete: any;
-    const initAutocomplete = () => {
-      const win = window as any;
-      if (win.google && win.google.maps && win.google.maps.places && addressInputRef.current) {
-        autocomplete = new win.google.maps.places.Autocomplete(addressInputRef.current, {
-          types: ["address"],
-          componentRestrictions: { country: "cl" },
-        });
-
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (place?.formatted_address) {
-            setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
-          } else if (place?.name) {
-            setFormData((prev) => ({ ...prev, direccion: place.name! }));
-          }
-        });
-      }
-    };
-
+  const initAutocomplete = () => {
     const win = window as any;
+    if (win.google && win.google.maps && win.google.maps.places && addressInputRef.current) {
+      console.log("Inicializando Google Maps Autocomplete...");
+      const autocomplete = new win.google.maps.places.Autocomplete(addressInputRef.current, {
+        types: ["address"],
+        componentRestrictions: { country: "cl" },
+      });
 
-    if (win.google && win.google.maps && win.google.maps.places) {
-      initAutocomplete();
-    } else {
-      const interval = setInterval(() => {
-        if (win.google && win.google.maps && win.google.maps.places) {
-          clearInterval(interval);
-          initAutocomplete();
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        console.log("Lugar seleccionado:", place);
+        if (place?.formatted_address) {
+          setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
+        } else if (place?.name) {
+          setFormData((prev) => ({ ...prev, direccion: place.name! }));
         }
-      }, 500);
-      return () => clearInterval(interval);
+      });
+    } else {
+      console.warn("Faltan dependencias para inicializar Autocomplete", { google: !!win.google, ref: !!addressInputRef.current });
     }
+  };
 
-    return () => {
-      if (autocomplete && win.google && win.google.maps && win.google.maps.event) {
-        win.google.maps.event.clearInstanceListeners(autocomplete);
-      }
-    };
-  }, []);
+  useEffect(() => {
+    if (mapsLoaded) {
+      initAutocomplete();
+    }
+  }, [mapsLoaded]);
 
   useEffect(() => {
     async function checkSession() {
@@ -263,6 +252,11 @@ export default function QuotationForm() {
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl mx-auto border-t-4 border-cyan relative">
+      <Script 
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`} 
+        strategy="afterInteractive"
+        onLoad={() => setMapsLoaded(true)}
+      />
       <h2 className="text-3xl font-extrabold text-navy mb-6 text-center uppercase tracking-tight">
         Agendar Servicio
       </h2>
