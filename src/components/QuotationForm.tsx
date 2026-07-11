@@ -66,8 +66,9 @@ export default function QuotationForm() {
   useEffect(() => {
     let autocomplete: any;
     const initAutocomplete = () => {
-      if (window.google && window.google.maps && window.google.maps.places && addressInputRef.current) {
-        autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+      const win = window as any;
+      if (win.google && win.google.maps && win.google.maps.places && addressInputRef.current) {
+        autocomplete = new win.google.maps.places.Autocomplete(addressInputRef.current, {
           types: ["address"],
           componentRestrictions: { country: "cl" },
         });
@@ -83,11 +84,13 @@ export default function QuotationForm() {
       }
     };
 
-    if (window.google && window.google.maps && window.google.maps.places) {
+    const win = window as any;
+
+    if (win.google && win.google.maps && win.google.maps.places) {
       initAutocomplete();
     } else {
       const interval = setInterval(() => {
-        if (window.google && window.google.maps && window.google.maps.places) {
+        if (win.google && win.google.maps && win.google.maps.places) {
           clearInterval(interval);
           initAutocomplete();
         }
@@ -96,8 +99,8 @@ export default function QuotationForm() {
     }
 
     return () => {
-      if (autocomplete && window.google && window.google.maps && window.google.maps.event) {
-        window.google.maps.event.clearInstanceListeners(autocomplete);
+      if (autocomplete && win.google && win.google.maps && win.google.maps.event) {
+        win.google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
   }, []);
