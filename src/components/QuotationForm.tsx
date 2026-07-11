@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
-import Autocomplete from "react-google-autocomplete";
+import { useRef } from "react";
 
 const PRICES = {
   "1200": 80000,
@@ -61,6 +61,46 @@ export default function QuotationForm() {
   const [isHoliday, setIsHoliday] = useState(false);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const addressInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let autocomplete: any;
+    const initAutocomplete = () => {
+      if (window.google && window.google.maps && window.google.maps.places && addressInputRef.current) {
+        autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+          types: ["address"],
+          componentRestrictions: { country: "cl" },
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place?.formatted_address) {
+            setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
+          } else if (place?.name) {
+            setFormData((prev) => ({ ...prev, direccion: place.name! }));
+          }
+        });
+      }
+    };
+
+    if (window.google && window.google.maps && window.google.maps.places) {
+      initAutocomplete();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          clearInterval(interval);
+          initAutocomplete();
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      if (autocomplete && window.google && window.google.maps && window.google.maps.event) {
+        window.google.maps.event.clearInstanceListeners(autocomplete);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     async function checkSession() {
@@ -352,20 +392,11 @@ export default function QuotationForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-navy mb-2">Dirección (Busca en el mapa)</label>
-            <Autocomplete
-              onPlaceSelected={(place) => {
-                if (place?.formatted_address) {
-                  setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
-                } else if (place?.name) {
-                  setFormData((prev) => ({ ...prev, direccion: place.name! }));
-                }
-              }}
-              options={{
-                types: ["address"],
-                componentRestrictions: { country: "cl" },
-              }}
+            <input
+              type="text"
               name="direccion"
               required
+              ref={addressInputRef}
               value={formData.direccion}
               onChange={handleChange}
               disabled={isSubmitting}
