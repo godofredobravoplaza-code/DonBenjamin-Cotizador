@@ -11,6 +11,7 @@ export async function sendConfirmationEmail(data: {
   hora: string;
   capacidad: string;
   direccion: string;
+  detalle_direccion?: string;
   comuna: string;
   precio: number;
 }) {
@@ -59,6 +60,7 @@ export async function sendConfirmationEmail(data: {
                 <li style="margin-bottom: 10px;"><strong>📅 Fecha y Hora:</strong> ${data.fecha} a las ${data.hora} hrs.</li>
                 <li style="margin-bottom: 10px;"><strong>💧 Capacidad:</strong> ${data.capacidad} LTS</li>
                 <li style="margin-bottom: 10px;"><strong>📍 Dirección:</strong> ${data.direccion}, ${data.comuna}</li>
+                ${data.detalle_direccion ? `<li style="margin-bottom: 10px;"><strong>📌 Detalle:</strong> ${data.detalle_direccion}</li>` : ""}
                 <li style="margin-bottom: 10px;"><strong>💰 Total a Pagar:</strong> ${formattedPrice}</li>
               </ul>
             </div>
@@ -101,6 +103,7 @@ export async function sendConfirmationEmail(data: {
               <p><strong>Teléfono:</strong> (Ver en panel/calendar)</p>
               <p><strong>Fecha y Hora:</strong> ${data.fecha} a las ${data.hora}</p>
               <p><strong>Dirección:</strong> ${data.direccion}, ${data.comuna}</p>
+              ${data.detalle_direccion ? `<p><strong>Detalle Dir:</strong> ${data.detalle_direccion}</p>` : ""}
               <p><strong>Capacidad:</strong> ${data.capacidad} LTS</p>
               
               <div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">

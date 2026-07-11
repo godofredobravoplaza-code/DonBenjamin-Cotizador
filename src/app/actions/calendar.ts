@@ -30,6 +30,7 @@ export async function createCalendarEvent(data: {
   hora: string;
   capacidad: string;
   direccion: string;
+  detalle_direccion?: string;
   comuna: string;
 }) {
   try {
@@ -46,6 +47,7 @@ export async function createCalendarEvent(data: {
         - Empresa: ${data.empresa || "N/A"}
         - Capacidad: ${data.capacidad} LTS
         - Dirección: ${data.direccion}, ${data.comuna}
+        - Detalle Dir: ${data.detalle_direccion || "Ninguno"}
       `,
       start: {
         dateTime: `${data.fecha}T${data.hora}:00`,

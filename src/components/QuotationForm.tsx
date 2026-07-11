@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const PRICES = {
   "1200": 80000,
@@ -48,6 +49,7 @@ export default function QuotationForm() {
     hora: "",
     capacidad: "",
     direccion: "",
+    detalle_direccion: "",
     comuna: "Chillán",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +61,21 @@ export default function QuotationForm() {
   const [isHoliday, setIsHoliday] = useState(false);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+
+  const { ref: placesRef } = usePlacesWidget<HTMLInputElement>({
+    apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    onPlaceSelected: (place) => {
+      if (place?.formatted_address) {
+        setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
+      } else if (place?.name) {
+        setFormData((prev) => ({ ...prev, direccion: place.name! }));
+      }
+    },
+    options: {
+      types: ["address"],
+      componentRestrictions: { country: "cl" },
+    },
+  });
 
   useEffect(() => {
     async function checkSession() {
@@ -142,6 +159,7 @@ export default function QuotationForm() {
           hora: formData.hora,
           capacidad: formData.capacidad,
           direccion: formData.direccion,
+          detalle_direccion: formData.detalle_direccion,
           comuna: formData.comuna,
           precio: calculatedPrice,
           status: "pending", // Empezamos en pendiente
@@ -162,6 +180,7 @@ export default function QuotationForm() {
         hora: formData.hora,
         capacidad: formData.capacidad,
         direccion: formData.direccion,
+        detalle_direccion: formData.detalle_direccion,
         comuna: formData.comuna,
       });
 
@@ -175,6 +194,7 @@ export default function QuotationForm() {
         hora: formData.hora,
         capacidad: formData.capacidad,
         direccion: formData.direccion,
+        detalle_direccion: formData.detalle_direccion,
         comuna: formData.comuna,
         precio: calculatedPrice,
       });
@@ -194,6 +214,7 @@ export default function QuotationForm() {
         hora: "",
         capacidad: "",
         direccion: "",
+        detalle_direccion: "",
         comuna: "Chillán",
       });
     } catch (err: any) {
@@ -344,15 +365,30 @@ export default function QuotationForm() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-bold text-navy mb-2">Dirección</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-navy mb-2">Dirección (Busca en el mapa)</label>
             <input
               type="text"
               name="direccion"
               required
+              ref={placesRef}
               value={formData.direccion}
               onChange={handleChange}
               disabled={isSubmitting}
+              placeholder="Ej. Los Pajaritos 123, Maipú"
+              className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-bold text-navy mb-2">Detalle (Opcional)</label>
+            <input
+              type="text"
+              name="detalle_direccion"
+              value={formData.detalle_direccion}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              placeholder="Nro casa, condominio, torre..."
               className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
             />
           </div>
