@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Script from "next/script";
 
 const PRICES = {
