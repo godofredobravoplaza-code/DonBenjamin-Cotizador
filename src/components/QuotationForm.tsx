@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createCalendarEvent, getAvailableSlots } from "@/app/actions/calendar";
 import { sendConfirmationEmail } from "@/app/actions/email";
 import Link from "next/link";
-import { usePlacesWidget } from "react-google-autocomplete";
+import Autocomplete from "react-google-autocomplete";
 
 const PRICES = {
   "1200": 80000,
@@ -61,21 +61,6 @@ export default function QuotationForm() {
   const [isHoliday, setIsHoliday] = useState(false);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
-
-  const { ref: placesRef } = usePlacesWidget<HTMLInputElement>({
-    apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    onPlaceSelected: (place) => {
-      if (place?.formatted_address) {
-        setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
-      } else if (place?.name) {
-        setFormData((prev) => ({ ...prev, direccion: place.name! }));
-      }
-    },
-    options: {
-      types: ["address"],
-      componentRestrictions: { country: "cl" },
-    },
-  });
 
   useEffect(() => {
     async function checkSession() {
@@ -367,11 +352,21 @@ export default function QuotationForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-navy mb-2">Dirección (Busca en el mapa)</label>
-            <input
-              type="text"
+            <Autocomplete
+              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+              onPlaceSelected={(place) => {
+                if (place?.formatted_address) {
+                  setFormData((prev) => ({ ...prev, direccion: place.formatted_address! }));
+                } else if (place?.name) {
+                  setFormData((prev) => ({ ...prev, direccion: place.name! }));
+                }
+              }}
+              options={{
+                types: ["address"],
+                componentRestrictions: { country: "cl" },
+              }}
               name="direccion"
               required
-              ref={placesRef}
               value={formData.direccion}
               onChange={handleChange}
               disabled={isSubmitting}
