@@ -403,6 +403,9 @@ export default function QuotationForm() {
               placeholder="Ej. Los Pajaritos 123, Maipú"
               className="w-full p-3 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-cyan outline-none rounded"
             />
+            <p className="text-xs text-slate-500 mt-1 italic">
+              * Si no encuentras tu dirección en el buscador, no te preocupes, solo escríbela y detállala en el campo de abajo.
+            </p>
           </div>
           
           <div>
